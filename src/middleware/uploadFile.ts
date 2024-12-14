@@ -11,6 +11,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
 const uploadMiddleware = (req: Request, res: Response, next: NextFunction) => {
   upload.single('csv_file')(req, res, (err) => {
     if (err) {
@@ -19,6 +20,5 @@ const uploadMiddleware = (req: Request, res: Response, next: NextFunction) => {
     }
     next();
   })
-
 }
 export default uploadMiddleware;
