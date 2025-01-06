@@ -1,6 +1,7 @@
-import express from 'express';
+import express, { NextFunction } from 'express';
 import dotenv from 'dotenv';
 import csvRoutes from './routes/csvRoutes';
+import cors from 'cors';
 import { connectToMongoDB } from './db';
 
 
@@ -16,7 +17,14 @@ const dbCollection = process.env.MONGODB_COLLECTION || 'upload';
 
 connectToMongoDB(uri, dbName, dbCollection);
 
-app.use('/', express.json(), csvRoutes);
+const corsConfig = cors({
+  origin: 'http://localhost:3000',
+  methods: ['POST'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+})
+
+app.use('/', corsConfig, express.json(), csvRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

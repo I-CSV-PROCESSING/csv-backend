@@ -29,7 +29,6 @@ const uploadCSV = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         mDB.drop();
         const data = yield readCsvFile(filePath);
         yield mDB.insertMany(data);
-        console.log(mDB.collectionName);
     }
     catch (error) {
         res.status(400).json({ message: 'Error loading file' });
@@ -48,7 +47,6 @@ function readCsvFile(filePath) {
                 .on("data", (row) => {
                 if (headerCSV.length == 0) {
                     headerCSV.push(...row);
-                    console.log("pushed", headerCSV);
                 }
                 else {
                     const newDataPoint = {};
@@ -64,8 +62,9 @@ function readCsvFile(filePath) {
     });
 }
 const searchItems = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { limit, offset, filter, sort } = req.body;
+    const { limit, offset, filters, sort } = req.body;
     try {
+        console.log(limit, offset, filters, sort);
         const mDB = (0, db_1.getCollection)("upload");
         let offsetR = offset;
         let limitR = limit;
@@ -77,8 +76,8 @@ const searchItems = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         }
         let filterBody = {};
         let keySort = {};
-        if (filter && filter.length > 0) {
-            filterBody = convertKeySearchFilters(filter);
+        if (filters && filters.length > 0) {
+            filterBody = convertKeySearchFilters(filters);
         }
         if (sort && sort.length > 0) {
             keySort = convertKeySortFilter(sort);
@@ -88,7 +87,6 @@ const searchItems = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             .limit(limitR)
             .sort(keySort)
             .toArray();
-        console.log(foundData.length);
         res.status(200).json({ data: foundData });
     }
     catch (err) {
@@ -100,11 +98,14 @@ exports.searchItems = searchItems;
 function convertKeySearchFilters(filters) {
     const dbSearch = {};
     filters.forEach(keySet => {
-        if (keySet.operator == "=") {
+        if (keySet.operator === "=") {
             dbSearch[keySet.key] = keySet.value;
         }
-        else if (keySet.operator == "ilike") {
-            dbSearch[keySet.key] = { $regex: `/${keySet.value}/`, $options: 'i' };
+        else if (keySet.operator === "ilike") {
+            dbSearch[keySet.key] = { $regex: `${keySet.value}`, $options: 'i' };
+        }
+        else {
+            console.log("no such operator for filters");
         }
     });
     return dbSearch;
